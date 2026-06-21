@@ -139,6 +139,16 @@ html,body{height:100%;font-family:'Syne',sans-serif;background:var(--bg);color:v
 .lib-empty{color:var(--txt3);font-size:13px;text-align:center;padding:24px;
   background:var(--sur);border-radius:var(--r);border:1px dashed var(--bdr);line-height:1.7}
 
+/* Library teaser (Home -> Library page) */
+.lib-teaser{display:flex;align-items:center;gap:12px;background:var(--sur);
+  border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;cursor:pointer}
+.lib-teaser:active{background:var(--sur2);border-color:var(--f2)}
+.lib-teaser-icon{font-size:26px;flex-shrink:0}
+.lib-teaser-body{flex:1;min-width:0}
+.lib-teaser-title{font-size:14px;font-weight:700;color:var(--txt)}
+.lib-teaser-sub{font-size:12px;color:var(--txt3);margin-top:2px}
+.lib-teaser-arrow{font-size:22px;color:var(--txt3);flex-shrink:0}
+
 /* Add grid */
 .add-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
 .add-card{background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--r);
@@ -172,10 +182,11 @@ html,body{height:100%;font-family:'Syne',sans-serif;background:var(--bg);color:v
   -webkit-overflow-scrolling:touch;
   background:#111;
   padding:16px 16px 24px;
-  display:flex;
-  flex-direction:column;
-  gap:0;
   min-height:0; /* required for flex child scrolling on iOS */
+  /* NOTE: intentionally NOT display:flex — this is a plain vertical stack.
+     Flex here previously crushed every .book-page to ~2px tall once total
+     content height exceeded the viewport, because flex items shrink by
+     default and overflow:hidden disables their min-content protection. */
 }
 
 /* Individual book page — pure white */
@@ -293,6 +304,20 @@ html,body{height:100%;font-family:'Syne',sans-serif;background:var(--bg);color:v
 .dict-timer{font-family:'JetBrains Mono',monospace;font-size:22px;color:var(--f3);display:none}
 
 /* ═══ VOICE PAGE ═══ */
+.voice-sub-note{font-size:12px;color:var(--txt3);margin-bottom:10px;line-height:1.4}
+.voice-choice{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--r);
+  padding:13px 14px;margin-bottom:8px;cursor:pointer}
+.voice-choice.on{border-color:var(--f2);background:var(--sur2)}
+.voice-choice-name{font-size:14px;font-weight:700;color:var(--txt)}
+.voice-choice-badge{font-size:10px;font-weight:700;color:var(--f3);
+  background:rgba(220,0,0,.15);border:1px solid var(--f2);border-radius:6px;
+  padding:3px 9px;flex-shrink:0;white-space:nowrap}
+.record-prompt{background:var(--bg);border:1px dashed var(--bdr);border-radius:9px;
+  padding:12px;font-family:'DM Serif Display',serif;font-style:italic;font-size:14px;
+  color:var(--txt2);line-height:1.5;margin-bottom:6px}
+.prompt-refresh-btn{background:none;border:none;color:var(--f3);font-size:11px;
+  font-weight:700;cursor:pointer;padding:2px 0 10px;font-family:'Syne',sans-serif}
 .v-sel{width:100%;background:var(--sur);border:1px solid var(--bdr);
   border-radius:var(--r);color:var(--txt);font-family:'Syne',sans-serif;
   font-size:14px;padding:13px 14px;outline:none;margin-bottom:14px;cursor:pointer}
@@ -416,8 +441,15 @@ html,body{height:100%;font-family:'Syne',sans-serif;background:var(--bg);color:v
       </button>
     </div>
     <div class="home-lib">
-      <div class="sec" style="margin-top:16px">Library (<span id="libCount">0</span>)</div>
-      <div id="libraryList"><div class="lib-empty">No files yet — tap Listen &amp; Learn to add content.</div></div>
+      <div class="sec" style="margin-top:16px">Your Library</div>
+      <div class="lib-teaser" onclick="goPage('page-library')">
+        <div class="lib-teaser-icon">📚</div>
+        <div class="lib-teaser-body">
+          <div class="lib-teaser-title">Library</div>
+          <div class="lib-teaser-sub"><span id="libCount">0</span> item(s) saved</div>
+        </div>
+        <div class="lib-teaser-arrow">›</div>
+      </div>
     </div>
     <div style="height:14px"></div>
   </div>
@@ -427,6 +459,20 @@ html,body{height:100%;font-family:'Syne',sans-serif;background:var(--bg);color:v
     <button class="tab" onclick="navTab('page-voice',2)"><span class="ti">🎙️</span>Voice</button>
     <button class="tab" onclick="navTab('page-saves',3)"><span class="ti">🔖</span>Saves</button>
     <button class="tab" onclick="navTab('page-ai',4)"><span class="ti">✨</span>AI</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+  LIBRARY
+════════════════════════════════ -->
+<div class="page" id="page-library">
+  <div class="nav">
+    <button class="nav-back" onclick="goBack()">←</button>
+    <div class="nav-title">Library</div>
+  </div>
+  <div class="pg-body">
+    <div class="sec">All Items (<span id="libCount2">0</span>)</div>
+    <div id="libraryListFull"><div class="lib-empty">No files yet — tap Listen &amp; Learn to add content.</div></div>
   </div>
 </div>
 
@@ -626,12 +672,15 @@ html,body{height:100%;font-family:'Syne',sans-serif;background:var(--bg);color:v
     <div class="nav-title">Voice Settings</div>
   </div>
   <div class="pg-body">
-    <div class="sec">AI Reading Voice</div>
-    <select class="v-sel" id="voiceSel" onchange="pickVoice()"><option value="">Loading…</option></select>
-    <button class="fbtn fire" style="margin-bottom:20px" onclick="testVoice()">🔊 Test This Voice</button>
+    <div class="sec">AI Reading Voice — Pick One</div>
+    <div class="voice-sub-note">Ranked from your phone's voices — deepest, most natural, least robotic first</div>
+    <div id="voiceChoices"><div class="lib-empty">Loading voices…</div></div>
+    <button class="fbtn fire" style="margin-bottom:20px;margin-top:10px" onclick="testVoice()">🔊 Test Selected Voice</button>
     <div class="sec">Record Your Voice</div>
     <div class="rec-area">
-      <div style="font-size:13px;color:var(--txt2);margin-bottom:8px;line-height:1.6">Record up to 60s. AI analyzes and saves your voice for reading.</div>
+      <div style="font-size:13px;color:var(--txt2);margin-bottom:8px;line-height:1.6">Read the sentence below aloud, up to 60s. AI will describe your reading voice for your own reference. (Browser text-to-speech can't actually clone your voice for playback yet — this is a voice journal, not a clone.)</div>
+      <div class="record-prompt" id="recordPrompt">Tap 🔄 for a sentence to read</div>
+      <button class="prompt-refresh-btn" onclick="newRecordPrompt()">🔄 New sentence</button>
       <div class="wave-box" id="voiceWave"><span style="font-size:12px;color:var(--txt3)">Record to see waveform</span></div>
       <button class="rec-btn" id="voiceRecBtn" onclick="toggleVoiceRec()">🎙️ <span id="voiceRecLabel">Start Recording</span></button>
       <div class="rec-status" id="voiceRecStatus">Tap above to record</div>
@@ -719,6 +768,18 @@ let silentAudio=null, wakeLock=null;
 let timerOffset=0, timerStart=0;
 let quoteIdx=0;
 let wasPlayingWhenHidden=false; // tracks reading intent across screen lock/unlock
+const AI_VOICE_PITCH=0.84; // default pitch reduction for a less robotic, more grounded tone
+const VOICE_PITCH_OVERRIDES={fred:0.74}; // Fred needs more reduction than other voices to sound deep rather than nasal
+function pitchForVoice(name){
+  if(!name)return AI_VOICE_PITCH;
+  const lower=name.toLowerCase();
+  for(const key in VOICE_PITCH_OVERRIDES){
+    if(lower.includes(key))return VOICE_PITCH_OVERRIDES[key];
+  }
+  return AI_VOICE_PITCH;
+}
+let currentRecordSentence='';
+let buildToken=0, isBuildingPages=false; // guards/tracks chunked (non-blocking) page building
 let pageHistory=['page-home'];
 const synth=window.speechSynthesis;
 
@@ -787,7 +848,7 @@ function goPage(id){
   pageHistory.push(id);
 }
 function goBack(){
-  if(pageHistory.length<=1)return;
+  if(pageHistory.length<=1){ goHome(); return; } // reached via tab bar — no history to pop, go home instead
   const cur=pageHistory.pop();
   const prev=pageHistory[pageHistory.length-1];
   const curEl=document.getElementById(cur);
@@ -824,27 +885,66 @@ function hideLov(){
 }
 
 // ── VOICES ──
-function loadVoices(){
-  let all=synth.getVoices();
-  const en=all.filter(v=>v.lang.startsWith('en'));
-  voices=en.length>0?en:all;
-  const sel=document.getElementById('voiceSel');
-  if(!voices.length){sel.innerHTML='<option>No voices found</option>';return;}
-  sel.innerHTML=voices.map((v,i)=>`<option value="${i}">${v.name} (${v.lang})</option>`).join('');
-  const pref=voices.findIndex(v=>/natural|premium|enhanced|samantha|karen|daniel|siri/i.test(v.name));
-  selVoiceIdx=pref>=0?pref:0;
-  sel.selectedIndex=selVoiceIdx;
+function rankVoices(){
+  const all=synth.getVoices();
+  const us=all.filter(v=>/^en-us/i.test(v.lang));
+  const en=all.filter(v=>/^en/i.test(v.lang));
+  const pool = us.length>0 ? us : (en.length>0 ? en : all);
+  if(!pool.length)return [];
+
+  // Known stiff/novelty system voices to actively avoid (exist specifically to
+  // sound robotic/silly — never a good default for reading aloud).
+  const novelty=/albert|bahh|bells|boing|bubbles|cellos|good news|jester|organ|trinoids|whisper|zarvox|hysterical|deranged|junior|kathy|princess|ralph|bad news/i;
+  const quality=/natural|premium|enhanced/i;
+  // Locale was already filtered to en-US above, so checking these names here is
+  // safe — "Daniel"/"Arthur"/"Gordon"/"Oliver" etc. only reach this point if the
+  // device genuinely has an en-US voice using that name.
+  const maleNames=/aaron|alex|nathan|evan|fred|tom\b|kevin|brian|james|john|mark|paul|robert|daniel|arthur|gordon|oliver|eddy|guy\b/i;
+  const femaleNames=/samantha|nicky|susan|allison|ava|zoe|kate|victoria|karen|moira|tessa|veena|fiona|serena|shelley|melina|amelie|ellen|claire/i;
+
+  const usable=pool.filter(v=>!novelty.test(v.name));
+  const candidates=usable.length?usable:pool;
+  const scored=candidates.map((v,i)=>{
+    let score=0;
+    if(maleNames.test(v.name))score+=3;
+    if(quality.test(v.name))score+=2;
+    if(!femaleNames.test(v.name))score+=1;
+    if(/\bfred\b/i.test(v.name))score+=10; // user feedback: closest match to what they want
+    return {v,score,i};
+  });
+  scored.sort((a,b)=>b.score-a.score||a.i-b.i);
+  return scored.map(s=>s.v);
 }
-function pickVoice(){
-  selVoiceIdx=parseInt(document.getElementById('voiceSel').value)||0;
-  activeVoiceId=null;
+function loadVoices(){
+  voices=rankVoices().slice(0,4);
+  if(!voices.length){
+    const wrap=document.getElementById('voiceChoices');
+    if(wrap)wrap.innerHTML='<div class="lib-empty">No voices found on this device</div>';
+    return;
+  }
+  if(selVoiceIdx==null||selVoiceIdx<0||selVoiceIdx>=voices.length)selVoiceIdx=0;
+  renderVoiceChoices();
+}
+function renderVoiceChoices(){
+  const wrap=document.getElementById('voiceChoices');
+  if(!wrap)return;
+  wrap.innerHTML=voices.map((v,i)=>`
+    <div class="voice-choice ${i===selVoiceIdx?'on':''}" onclick="selectAIVoice(${i})">
+      <div class="voice-choice-name">${esc(v.name)}</div>
+      ${i===selVoiceIdx?'<div class="voice-choice-badge">SELECTED</div>':''}
+    </div>`).join('');
+}
+function selectAIVoice(i){
+  selVoiceIdx=i;
+  activeVoiceId=null; // picking a system voice deactivates any custom recorded voice
+  renderVoiceChoices();
   renderVoiceList();
-  showToast('Voice updated');
+  showToast('Voice selected — tap Test to preview');
 }
 function testVoice(){
   synth.cancel();
   const u=new SpeechSynthesisUtterance("This is FireRead. Your knowledge is about to ignite.");
-  u.rate=speechRate;
+  u.rate=speechRate;u.pitch=pitchForVoice(voices[selVoiceIdx]?.name);
   if(voices[selVoiceIdx])u.voice=voices[selVoiceIdx];
   synth.speak(u);
 }
@@ -883,10 +983,10 @@ async function doExtractPDF(file){
         document.getElementById('lovMsg').textContent=`Page ${i} of ${n}…`;
         const page=await pdf.getPage(i);
         const content=await page.getTextContent();
-        // Simple reliable join
-        text+=content.items.map(it=>it.str).join(' ').replace(/\s{2,}/g,' ').trim()+'\n\n';
+        const pageText=pageItemsToText(content.items);
+        if(pageText)text+=pageText+'\n\n';
       }
-      text=text.trim();
+      text=text.trim().replace(/[ \t]{2,}/g,' ');
       hideLov();
       if(!text){showToast('No text found. This PDF may be image-only.');return;}
       addToLibrary(file.name,text);
@@ -900,6 +1000,77 @@ async function doExtractPDF(file){
     }
   };
   reader.readAsArrayBuffer(file);
+}
+
+// ── PDF PARAGRAPH RECONSTRUCTION ──
+// pdf.js gives us flat text fragments per page with x/y position data, but no
+// paragraph structure. This rebuilds real paragraphs for ANY pdf by reading
+// that layout data directly:
+//  1) sort fragments into true top-to-bottom, left-to-right reading order
+//     (fixes PDFs whose internal content stream order doesn't match the
+//     visual layout — common with headers/footers)
+//  2) group fragments into lines by shared y-position
+//  3) work out this page's typical single-line gap and left margin
+//  4) start a new paragraph wherever a line breaks from that pattern:
+//     a noticeably bigger vertical gap (blank-line style breaks) or a
+//     line that starts indented past the margin (first-line-indent style)
+// Deliberately does NOT use font-name changes as a signal — tested against
+// real PDFs and found to cause false mid-sentence splits when a PDF's
+// generator embeds the same visual font as multiple internal font objects.
+function pageItemsToText(items){
+  const valid=(items||[]).filter(it=>it.transform&&it.transform.length===6);
+  if(!valid.length)return '';
+  const sorted=valid.slice().sort((a,b)=>{
+    const dy=b.transform[5]-a.transform[5]; // higher y = higher on page = read first
+    if(Math.abs(dy)>2)return dy;
+    return a.transform[4]-b.transform[4]; // same line: left to right
+  });
+
+  const LINE_EPS=2.5;
+  let lines=[],cur=null;
+  sorted.forEach(it=>{
+    const y=it.transform[5],x=it.transform[4],w=it.width||0;
+    const clean=(it.str||'').replace(/[\uE000-\uF8FF]/g,''); // strip bullet/icon-font glyphs (Wingdings etc.)
+    if(cur&&Math.abs(y-cur.y)<=LINE_EPS){
+      const gap=x-cur.endX;
+      const needsSpace=gap>1&&!/\s$/.test(cur.text)&&clean&&!/^\s/.test(clean);
+      cur.text+=(needsSpace?' ':'')+clean;
+      cur.endX=Math.max(cur.endX,x+w);
+    }else{
+      if(cur)lines.push(cur);
+      cur={y,x,endX:x+w,text:clean};
+    }
+  });
+  if(cur)lines.push(cur);
+  lines.forEach(l=>l.text=l.text.trim());
+  lines=lines.filter(l=>l.text);
+  if(!lines.length)return '';
+
+  // typical single-line gap = most common small positive y-delta on this page
+  const gapFreq={};
+  for(let i=1;i<lines.length;i++){
+    const g=Math.round((lines[i-1].y-lines[i].y)*2)/2;
+    if(g>0&&g<80)gapFreq[g]=(gapFreq[g]||0)+1;
+  }
+  let typicalGap=14;
+  const gapKeys=Object.keys(gapFreq);
+  if(gapKeys.length)typicalGap=parseFloat(gapKeys.reduce((a,b)=>gapFreq[a]>=gapFreq[b]?a:b));
+
+  // typical left margin = most common line start x on this page
+  const xFreq={};
+  lines.forEach(l=>{const rx=Math.round(l.x);xFreq[rx]=(xFreq[rx]||0)+1;});
+  const xKeys=Object.keys(xFreq);
+  const marginX=xKeys.length?parseFloat(xKeys.reduce((a,b)=>xFreq[a]>=xFreq[b]?a:b)):lines[0].x;
+
+  let out=lines[0].text;
+  for(let i=1;i<lines.length;i++){
+    const gap=lines[i-1].y-lines[i].y;
+    const indented=(lines[i].x-marginX)>Math.max(8,typicalGap*0.8);
+    const bigGap=gap>typicalGap*1.5;
+    const brokenFlow=gap<=0; // column jump or out-of-order fragment
+    out+=(bigGap||indented||brokenFlow)?('\n\n'+lines[i].text):(' '+lines[i].text);
+  }
+  return out;
 }
 
 // ── FILE HANDLING ──
@@ -1029,12 +1200,14 @@ function addToLibrary(name,text){
 }
 
 function renderLibrary(){
-  const el=document.getElementById('libraryList');
+  const el=document.getElementById('libraryListFull');
   const el2=document.getElementById('listenRecent');
   document.getElementById('libCount').textContent=library.length;
+  const libCount2=document.getElementById('libCount2');
+  if(libCount2)libCount2.textContent=library.length;
   if(!library.length){
     const emp='<div class="lib-empty">No files yet — tap Listen &amp; Learn to add content.</div>';
-    el.innerHTML=emp;if(el2)el2.innerHTML='<div class="lib-empty">Nothing added yet.</div>';
+    if(el)el.innerHTML=emp;if(el2)el2.innerHTML='<div class="lib-empty">Nothing added yet.</div>';
     return;
   }
   const html=library.slice().reverse().map(doc=>`
@@ -1047,7 +1220,7 @@ function renderLibrary(){
       </div>
       <button class="lib-del" onclick="delDoc(${doc.id})" title="Delete">🗑️</button>
     </div>`).join('');
-  el.innerHTML=html;
+  if(el)el.innerHTML=html;
   if(el2)el2.innerHTML=html;
 }
 
@@ -1111,6 +1284,7 @@ function loadDoc(doc){
 const WORDS_PER_PAGE=250;
 
 function buildBookPages(text){
+  const myToken=++buildToken; // lets a newer doc abandon a stale in-progress build
   const scroll=document.getElementById('bookScroll');
   scroll.innerHTML='';
   words=[];pageBreaks=[];
@@ -1138,25 +1312,23 @@ function buildBookPages(text){
   const docName=currentDoc?.name.replace(/\.[^.]+$/,'')||'Document';
   const totalPages=pages.length;
 
-  pages.forEach((pageParas,pageNum)=>{
+  function buildOnePage(pageNum){
     pageBreaks.push(words.length); // word index where this page starts
 
     const pageEl=document.createElement('div');
     pageEl.className='book-page';
     pageEl.id=`bp_${pageNum}`;
 
-    // Top bar
     const topBar=document.createElement('div');
     topBar.className='page-num-bar';
     topBar.innerHTML=`<span class="page-num-label">PAGE ${pageNum+1} OF ${totalPages}</span><span class="page-doc-name">${esc(docName)}</span>`;
     pageEl.appendChild(topBar);
 
-    // Content
     const content=document.createElement('div');
     content.className='page-content';
     content.style.setProperty('--fs', fontSize+'px');
 
-    pageParas.forEach(({para})=>{
+    pages[pageNum].forEach(({para})=>{
       const p=document.createElement('p');
       p.style.fontSize=fontSize+'px';
       p.style.color='#111111';
@@ -1179,19 +1351,41 @@ function buildBookPages(text){
     });
     pageEl.appendChild(content);
 
-    // Bottom bar
     const foot=document.createElement('div');
     foot.className='page-foot';
     foot.innerHTML=`<span class="page-foot-num">— ${pageNum+1} —</span>`;
     pageEl.appendChild(foot);
 
     scroll.appendChild(pageEl);
-  });
+  }
+
+  // Build the first few pages immediately so the reader appears instantly —
+  // no visible freeze even on long books.
+  const FIRST_BATCH=3, CHUNK_SIZE=6;
+  let idx=0;
+  for(;idx<Math.min(FIRST_BATCH,totalPages);idx++)buildOnePage(idx);
 
   wordIdx=0;
   updateProgress();
   updateTotalTime();
   updatePageIndicator();
+
+  if(idx>=totalPages)return; // short document — already fully built
+
+  isBuildingPages=true;
+  function buildNextChunk(){
+    if(myToken!==buildToken)return; // a different document was opened meanwhile — abandon
+    const end=Math.min(idx+CHUNK_SIZE,totalPages);
+    for(;idx<end;idx++)buildOnePage(idx);
+    updateTotalTime(); // refine the estimate as more of the book streams in
+    if(idx<totalPages){
+      requestAnimationFrame(buildNextChunk);
+    }else{
+      isBuildingPages=false;
+      updatePageIndicator();
+    }
+  }
+  requestAnimationFrame(buildNextChunk);
 }
 
 function updatePageIndicator(){
@@ -1232,19 +1426,49 @@ function startSpeechFrom(idx){
   wordIdx=idx;isPlaying=true;
   document.getElementById('pbPlay').textContent='⏸';
   document.getElementById('lockBadge').style.display='block';
+  startSilentAudio();setupMediaSession();updateMediaSession();
+  requestWakeLock();chromeKeepalive();startTimer();
+  speakChunkFrom(idx);
+}
 
-  const text=words.slice(idx).map(w=>w.text).join(' ');
-  utterance=new SpeechSynthesisUtterance(text);
-  utterance.rate=speechRate;utterance.pitch=1;utterance.volume=1;
-  if(!activeVoiceId&&voices[selVoiceIdx])utterance.voice=voices[selVoiceIdx];
+// Speaking the whole rest of the document as one utterance let the browser's
+// per-word timing estimate drift further from the real audio the longer it
+// played, so the highlight visibly raced ahead. Speaking in short, sentence-
+// aware chunks resets that estimate often, keeping it in sync — and chaining
+// chunks via onend makes it sound like one continuous read, no audible gaps.
+function nextChunkEnd(startIdx){
+  const MIN_CHUNK=30,MAX_CHUNK=55;
+  const hardEnd=Math.min(startIdx+MAX_CHUNK,words.length);
+  const searchStart=Math.min(startIdx+MIN_CHUNK,hardEnd);
+  for(let j=searchStart;j<hardEnd;j++){
+    if(/[.!?]["'\u2019\u201d)\]]?$/.test(words[j].text))return j+1;
+  }
+  return hardEnd;
+}
+function speakChunkFrom(startIdx){
+  if(!isPlaying)return;
+  if(startIdx>=words.length){
+    // reached the true end of the document
+    clearHL();isPlaying=false;
+    document.getElementById('pbPlay').textContent='▶';
+    document.getElementById('lockBadge').style.display='none';
+    stopTimer();stopSilentAudio();updateMediaSession();releaseWakeLock();
+    if(currentDoc){currentDoc.progress=100;renderLibrary();saveStorage();}
+    return;
+  }
+  const endIdx=nextChunkEnd(startIdx);
+  const text=words.slice(startIdx,endIdx).map(w=>w.text).join(' ');
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.rate=speechRate;utt.pitch=pitchForVoice(voices[selVoiceIdx]?.name);utt.volume=1;
+  if(!activeVoiceId&&voices[selVoiceIdx])utt.voice=voices[selVoiceIdx];
 
-  let li=idx;
-  utterance.onboundary=e=>{
+  let li=startIdx;
+  utt.onboundary=e=>{
     if(e.name!=='word')return;
-    if(li>0&&words[li-1]){
-      words[li-1].el.classList.remove('speaking');
-      words[li-1].el.style.color='#111111';
-      words[li-1].el.style.background='';
+    if(words[wordIdx]&&words[wordIdx]!==words[li]){
+      words[wordIdx].el.classList.remove('speaking');
+      words[wordIdx].el.style.color='#111111';
+      words[wordIdx].el.style.background='';
     }
     if(words[li]){
       words[li].el.classList.add('speaking');
@@ -1258,14 +1482,11 @@ function startSpeechFrom(idx){
     }
     li++;
   };
-  utterance.onend=()=>{
-    clearHL();isPlaying=false;
-    document.getElementById('pbPlay').textContent='▶';
-    document.getElementById('lockBadge').style.display='none';
-    stopTimer();stopSilentAudio();updateMediaSession();releaseWakeLock();
-    if(currentDoc){currentDoc.progress=100;renderLibrary();saveStorage();}
+  utt.onend=()=>{
+    if(!isPlaying)return; // stopped/interrupted elsewhere — don't auto-continue
+    speakChunkFrom(endIdx);
   };
-  utterance.onerror=err=>{
+  utt.onerror=err=>{
     if(err.error==='interrupted'||err.error==='canceled')return;
     isPlaying=false;
     document.getElementById('pbPlay').textContent='▶';
@@ -1273,9 +1494,8 @@ function startSpeechFrom(idx){
     stopTimer();stopSilentAudio();updateMediaSession();releaseWakeLock();
   };
 
-  synth.speak(utterance);
-  startSilentAudio();setupMediaSession();updateMediaSession();
-  requestWakeLock();chromeKeepalive();startTimer();
+  utterance=utt;
+  synth.speak(utt);
 }
 
 function chromeKeepalive(){
@@ -1428,6 +1648,13 @@ async function toggleVoiceRec(){
   else await startVoiceRec();
 }
 async function startVoiceRec(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    showToast('Microphone access not supported in this browser.');return;
+  }
+  if(typeof MediaRecorder==='undefined'){
+    showToast('Voice recording not supported in this browser.');return;
+  }
+  if(!currentRecordSentence)newRecordPrompt();
   try{
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
     audioCtx=new AudioContext();
@@ -1441,7 +1668,24 @@ async function startVoiceRec(){
     }
     mediaRec=new MediaRecorder(stream,mime?{mimeType:mime}:{});
     mediaRec.ondataavailable=e=>{if(e.data.size>0)recChunks.push(e.data);};
+    mediaRec.onerror=()=>{
+      showToast('Recording error — please try again.');
+      stream.getTracks().forEach(t=>t.stop());
+      stopWaveAnim();
+      document.getElementById('voiceRecBtn').classList.remove('rec');
+      document.getElementById('voiceRecLabel').textContent='Start Recording';
+      document.getElementById('voiceRecStatus').textContent='Tap above to record';
+    };
     mediaRec.onstop=()=>{
+      if(recChunks.length===0||recChunks.reduce((a,c)=>a+c.size,0)===0){
+        showToast('No audio captured — check mic permission and try again.');
+        stream.getTracks().forEach(t=>t.stop());
+        stopWaveAnim();
+        document.getElementById('voiceRecBtn').classList.remove('rec');
+        document.getElementById('voiceRecLabel').textContent='Start Recording';
+        document.getElementById('voiceRecStatus').textContent='Tap above to record';
+        return;
+      }
       recBlob=new Blob(recChunks,{type:mediaRec.mimeType||'audio/webm'});
       recUrl=URL.createObjectURL(recBlob);
       stream.getTracks().forEach(t=>t.stop());
@@ -1455,13 +1699,42 @@ async function startVoiceRec(){
     mediaRec.start(100);
     document.getElementById('voiceRecBtn').classList.add('rec');
     document.getElementById('voiceRecLabel').textContent='Stop Recording';
-    document.getElementById('voiceRecStatus').textContent='🔴 Recording…';
+    document.getElementById('voiceRecStatus').textContent='🔴 Recording… read the sentence above';
     animateWave();
     setTimeout(()=>{if(mediaRec?.state==='recording')stopVoiceRec();},60000);
-  }catch(e){showToast('Microphone access denied.');}
+  }catch(e){
+    if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'){
+      showToast('Mic access denied — enable it in iPhone Settings > FireRead.');
+    }else if(e.name==='NotFoundError'){
+      showToast('No microphone found on this device.');
+    }else{
+      showToast('Could not start recording. Try again.');
+    }
+  }
 }
 function stopVoiceRec(){if(mediaRec&&mediaRec.state==='recording')mediaRec.stop();}
 function previewRec(){if(recUrl)new Audio(recUrl).play().catch(()=>showToast('Cannot play'));}
+// ── VOICE RECORDING PROMPTS ──
+const RECORD_SENTENCES=[
+  "The quick brown fox jumps over the lazy dog while the sun sets behind the mountains.",
+  "Reading aloud every morning has helped me focus better and remember more of what I learn.",
+  "She sells seashells by the seashore, but the price changes depending on the tide.",
+  "A journey of a thousand miles begins with a single, well-considered step forward.",
+  "The old lighthouse keeper watched the storm roll in from across the restless gray sea.",
+  "Curiosity and consistency matter more than talent when you are building a new habit.",
+  "Bright ideas often arrive quietly, long after the loud thinking has finally settled down.",
+  "Practice does not make perfect, but it does make progress easier to notice over time.",
+];
+function newRecordPrompt(){
+  let next=currentRecordSentence;
+  while(next===currentRecordSentence&&RECORD_SENTENCES.length>1){
+    next=RECORD_SENTENCES[Math.floor(Math.random()*RECORD_SENTENCES.length)];
+  }
+  currentRecordSentence=next;
+  const el=document.getElementById('recordPrompt');
+  if(el)el.textContent='"'+currentRecordSentence+'"';
+}
+
 async function analyzeAndSave(){
   if(!recBlob){showToast('No recording');return;}
   const name=document.getElementById('voiceNameIn').value.trim()||'My Voice';
@@ -1470,10 +1743,11 @@ async function analyzeAndSave(){
   let analysis='Warm, clear voice — excellent for focused reading sessions.';
   try{
     const sz=recChunks.reduce((a,c)=>a+c.size,0);
+    const sentencePart=currentRecordSentence?` They read this sentence aloud: "${currentRecordSentence}"`:'';
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:180,
-        messages:[{role:'user',content:`A user recorded their voice (${Math.round(sz/1000)}KB) for a text-to-speech reading app. In 1-2 sentences, describe their voice characteristics encouragingly and how it suits reading aloud.`}]})
+        messages:[{role:'user',content:`A user recorded their voice (${Math.round(sz/1000)}KB) for a text-to-speech reading app's personal voice journal.${sentencePart} In 1-2 sentences, describe their likely vocal tone and pacing encouragingly, as general reading-voice feedback (not a technical analysis).`}]})
     });
     const d=await res.json();
     analysis=d.content?.[0]?.text||analysis;
@@ -1713,6 +1987,7 @@ window.addEventListener('load',()=>{
   initPbTrack();
   initSilentAudio();
   loadVoices();
+  newRecordPrompt();
   synth.onvoiceschanged=loadVoices;
   // Retry voices after 1s (iOS Safari delay)
   setTimeout(()=>{if(!voices.length)loadVoices();},1000);
